@@ -105,3 +105,29 @@ def test_predict_churn_returns_predictions_and_probabilities():
     assert "churn_probability" in results.columns
     assert results["predicted_churn"].isin([0, 1]).all()
     assert results["churn_probability"].between(0, 1).all()
+    
+from src.preprocessing import prepare_prediction_data
+
+
+
+def test_prepare_prediction_data_creates_features():
+    """Check that raw customer data is prepared for prediction."""
+    df = pd.DataFrame({
+        "customerID": ["C001", "C002"],
+        "tenure": [5, 24],
+        "TotalCharges": ["250.5", "1200.0"],
+        "PhoneService": ["Yes", "No"],
+        "OnlineSecurity": ["No", "Yes"],
+        "OnlineBackup": ["Yes", "No"],
+        "DeviceProtection": ["No", "Yes"],
+        "TechSupport": ["No", "No"],
+        "StreamingTV": ["Yes", "No"],
+        "StreamingMovies": ["No", "Yes"],
+    })
+
+    result = prepare_prediction_data(df)
+
+    assert "customerID" not in result.columns
+    assert "Churn" not in result.columns
+    assert result["num_services"].tolist() == [3, 3]
+    assert result["TotalCharges"].dtype != object

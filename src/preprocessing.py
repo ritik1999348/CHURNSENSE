@@ -169,3 +169,47 @@ def create_preprocessor(df):
             ),
         ]
     )
+
+def prepare_prediction_data(df):
+    """Prepare raw customer records for churn prediction.
+
+    Args:
+        df: Raw customer data as a pandas DataFrame.
+
+    Returns:
+        pandas.DataFrame: Features ready for the prediction pipeline.
+    """
+    df = df.copy()
+
+    # Remove customer ID and target column, if present
+    df = df.drop(columns=["customerID", "Churn"], errors="ignore")
+
+    # Convert TotalCharges to numeric
+    if "TotalCharges" in df.columns:
+        df["TotalCharges"] = pd.to_numeric(
+            df["TotalCharges"], errors="coerce"
+        )
+
+    # Count the active services
+    service_columns = [
+        "PhoneService",
+        "OnlineSecurity",
+        "OnlineBackup",
+        "DeviceProtection",
+        "TechSupport",
+        "StreamingTV",
+        "StreamingMovies",
+    ]
+
+    available_columns = [
+        col for col in service_columns if col in df.columns
+    ]
+
+    if available_columns:
+        df["num_services"] = sum(
+            (df[col] == "Yes").astype(int)
+            for col in available_columns
+        )
+
+    return df
+
